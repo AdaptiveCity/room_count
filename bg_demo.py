@@ -1,6 +1,7 @@
 from __future__ import print_function
 import cv2 as cv
 import argparse
+import numpy as np
 
 parser = argparse.ArgumentParser(description='This program shows how to use background subtraction methods provided by \
                                               OpenCV. You can process both videos and images.')
@@ -17,7 +18,9 @@ else:
 ## [create]
 
 ## [capture]
-capture = cv.VideoCapture(cv.samples.findFileOrKeep(args.input))
+#capture = cv.VideoCapture(cv.samples.findFileOrKeep(args.input))
+capture = cv.VideoCapture(0)
+
 if not capture.isOpened():
     print('Unable to open: ' + args.input)
     exit(0)
@@ -40,10 +43,16 @@ while True:
                cv.FONT_HERSHEY_SIMPLEX, 0.5 , (0,0,0))
     ## [display_frame_number]
 
+    kernel1 = cv.getStructuringElement(cv.MORPH_ELLIPSE,(7,7))
+    kernel2 = np.ones((5,5),np.uint8)
+    erosion = cv.erode(fgMask,kernel2,iterations = 1)
+    dilation = cv.dilate(erosion,kernel1,iterations = 7)
+
     ## [show]
     #show the current frame and the fg masks
     cv.imshow('Frame', frame)
     cv.imshow('FG Mask', fgMask)
+    cv.imshow('Dilation', dilation)
     ## [show]
 
     keyboard = cv.waitKey(30)
