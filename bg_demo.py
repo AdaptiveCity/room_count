@@ -7,6 +7,7 @@ parser = argparse.ArgumentParser(description='This program shows how to use back
                                               OpenCV. You can process both videos and images.')
 parser.add_argument('--input', type=str, help='Path to a video or a sequence of image.', default='videos/vtest.avi')
 parser.add_argument('--algo', type=str, help='Background subtraction method (KNN, MOG2).', default='MOG2')
+parser.add_argument('--rate', type=str, help='Background learning rate, e.g. 0.1', default='0.1')
 args = parser.parse_args()
 
 ## [create]
@@ -16,6 +17,8 @@ if args.algo == 'MOG2':
 else:
     backSub = cv.createBackgroundSubtractorKNN()
 ## [create]
+
+bs_rate = float(args.rate)
 
 ## [capture]
 #capture = cv.VideoCapture(cv.samples.findFileOrKeep(args.input))
@@ -33,7 +36,7 @@ while True:
 
     ## [apply]
     #update the background model
-    fgMask = backSub.apply(frame)
+    fgMask = backSub.apply(frame,learningRate=bs_rate)
     ## [apply]
 
     ## [display_frame_number]
