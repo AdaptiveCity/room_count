@@ -5,9 +5,9 @@ import numpy as np
 
 parser = argparse.ArgumentParser(description='This program shows how to use background subtraction methods provided by \
                                               OpenCV. You can process both videos and images.')
-parser.add_argument('--input', type=str, help='Path to a video or a sequence of image.', default='videos/vtest.avi')
+parser.add_argument('--input', type=str, help='Path to a video or a sequence of image.', default='')
 parser.add_argument('--algo', type=str, help='Background subtraction method (KNN, MOG2).', default='MOG2')
-parser.add_argument('--rate', type=str, help='Background learning rate, e.g. 0.1', default='0.1')
+parser.add_argument('--rate', type=str, help='Background learning rate, e.g. 0.1', default='-1')
 args = parser.parse_args()
 
 ## [create]
@@ -20,19 +20,48 @@ else:
 
 bs_rate = float(args.rate)
 
-## [capture]
-#capture = cv.VideoCapture(cv.samples.findFileOrKeep(args.input))
-capture = cv.VideoCapture(0)
+capture = None
+frame_number = 0
 
-if not capture.isOpened():
-    print('Unable to open: ' + args.input)
-    exit(0)
-## [capture]
+def init_video():
+    global capture, frame_number
+    ## [capture]
+    if args.input == '':
+        capture = cv.VideoCapture(0)
+    else:
+        capture = cv.VideoCapture(cv.samples.findFileOrKeep(args.input))
+    if not capture.isOpened():
+        print('Unable to open: ' + args.input)
+        exit(0)
+    frame_number = 0
+
+
+pause = True
+
+init_video()
 
 while True:
+    keyboard = cv.waitKey(30)
+    if keyboard == ord('q') or keyboard == 27:
+        print("Keyboard quit")
+        break
+    elif keyboard == ord('p') or keyboard == ord(' '):
+        pause = not pause
+        print("Toggle pause to "+str(pause))
+    elif keyboard == ord('<') and args.input != '':
+        print("Restarting video")
+        init_video()
+
+    if pause and frame_number != 0:
+        continue
+
+    frame_number += 1
+
     ret, frame = capture.read()
     if frame is None:
-        break
+        pause = True
+        init_video()
+        continue
 
     ## [apply]
     #update the background model
@@ -46,18 +75,17 @@ while True:
                cv.FONT_HERSHEY_SIMPLEX, 0.5 , (0,0,0))
     ## [display_frame_number]
 
-    kernel1 = cv.getStructuringElement(cv.MORPH_ELLIPSE,(7,7))
-    kernel2 = np.ones((5,5),np.uint8)
-    erosion = cv.erode(fgMask,kernel2,iterations = 1)
-    dilation = cv.dilate(erosion,kernel1,iterations = 7)
+    erosion_kernel = np.ones((7,7),np.uint8)
+    erosion_img = cv.erode(fgMask,erosion_kernel,iterations = 1)
+
+    dilation_kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE,(3,3))
+    dilation_img = cv.dilate(erosion_img,dilation_kernel,iterations = 7)
 
     ## [show]
     #show the current frame and the fg masks
     cv.imshow('Frame', frame)
     cv.imshow('FG Mask', fgMask)
-    cv.imshow('Dilation', dilation)
+    cv.imshow('erosion', erosion_img)
+    cv.imshow('Dilation', dilation_img)
     ## [show]
 
-    keyboard = cv.waitKey(30)
-    if keyboard == 'q' or keyboard == 27:
-        break
