@@ -1,5 +1,5 @@
 from __future__ import print_function
-import cv2 as cv
+import cv2
 import argparse
 import numpy as np
 
@@ -13,13 +13,40 @@ args = parser.parse_args()
 ## [create]
 #create Background Subtractor objects
 if args.algo == 'MOG2':
-    backSub = cv.createBackgroundSubtractorMOG2()
+    subtractor = cv2.createBackgroundSubtractorMOG2()
+    subtractor.setShadowValue(0)
 else:
-    backSub = cv.createBackgroundSubtractorKNN()
+    subtractor = cv2.createBackgroundSubtractorKNN()
 ## [create]
 
 bs_rate = float(args.rate)
 
+erosion_kernel = np.ones((11,11),np.uint8)
+dilation_kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(3,3))
+
+# Min perspetive box area for a seated person
+box_area_min = 2500
+
+# Build perspective matrix
+# Input image size
+frame_w = 848
+frame_h = 480
+# specify desired output size
+p_w = 1200
+p_h = 1000
+
+# specify conjugate x,y coordinates (not y,x)
+# points top-left, top-right, bottom-right, bottom-left
+in_coords = np.float32([[0, 0], [frame_w,0], [frame_w ,frame_h], [0,frame_h]])
+out_coords = np.float32([[-1000,-1200], [2300,-1200], [800,1200], [550,1200]])
+
+# compute perspective matrix
+p_matrix = cv2.getPerspectiveTransform(in_coords,out_coords)
+
+# Perspective image
+img_p = np.zeros((p_w, p_h), dtype=np.uint8)
+
+# Iterate through images
 capture = None
 frame_number = 0
 
@@ -27,21 +54,24 @@ def init_video():
     global capture, frame_number
     ## [capture]
     if args.input == '':
-        capture = cv.VideoCapture(0)
+        capture = cv2.VideoCapture(0)
     else:
-        capture = cv.VideoCapture(cv.samples.findFileOrKeep(args.input))
+        capture = cv2.VideoCapture(cv2.samples.findFileOrKeep(args.input))
     if not capture.isOpened():
         print('Unable to open: ' + args.input)
         exit(0)
     frame_number = 0
 
+seating_mask_input = cv2.imread("images/LT1_mask.jpg")
+seating_mask_gray = cv2.cvtColor(seating_mask_input, cv2.COLOR_BGR2GRAY)
+(thresh, seating_mask) = cv2.threshold(seating_mask_gray, 127, 255, cv2.THRESH_BINARY)
 
 pause = True
 
 init_video()
 
 while True:
-    keyboard = cv.waitKey(30)
+    keyboard = cv2.waitKey(30)
     if keyboard == ord('q') or keyboard == 27:
         print("Keyboard quit")
         break
@@ -63,29 +93,45 @@ while True:
         init_video()
         continue
 
+    #print("frame.shape="+str(frame.shape))
     ## [apply]
     #update the background model
-    fgMask = backSub.apply(frame,learningRate=bs_rate)
-    ## [apply]
+    img_fg = subtractor.apply(frame,learningRate=bs_rate)
 
-    ## [display_frame_number]
-    #get the frame number and write it on the current frame
-    cv.rectangle(frame, (10, 2), (100,20), (255,255,255), -1)
-    cv.putText(frame, str(capture.get(cv.CAP_PROP_POS_FRAMES)), (15, 15),
-               cv.FONT_HERSHEY_SIMPLEX, 0.5 , (0,0,0))
-    ## [display_frame_number]
+    img_fg_masked = cv2.bitwise_and(img_fg, img_fg, mask=seating_mask)
 
-    erosion_kernel = np.ones((7,7),np.uint8)
-    erosion_img = cv.erode(fgMask,erosion_kernel,iterations = 1)
+    img_p[0:frame_h,0:frame_w] = img_fg_masked
 
-    dilation_kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE,(3,3))
-    dilation_img = cv.dilate(erosion_img,dilation_kernel,iterations = 7)
+    # do perspective transformation setting area outside input to black
+    img_iso = cv2.warpPerspective(img_p, p_matrix, (p_w,p_h), cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT, borderValue=(0,0,0))
+
+    img_erosion = cv2.erode(img_iso,erosion_kernel,iterations = 3)
+
+    img_dilation = cv2.dilate(img_erosion,dilation_kernel,iterations = 7)
+
+    # bounding boxes
+    contours, hierarchy  = cv2.findContours(img_dilation, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    cv2.drawContours(img_iso, contours, -1, (0,255,75), 2)
+    #print(str(len(contours)) + " contours")
+
+    # Draw a bounding box around all contours
+    for c in contours:
+        # Make sure contour area is large enough
+        if (cv2.contourArea(c)) > box_area_min:
+            x, y, w, h = cv2.boundingRect(c)
+            cv2.rectangle(img_iso,(x,y), (x+w,y+h), (255,0,0), 5)
 
     ## [show]
     #show the current frame and the fg masks
-    cv.imshow('Frame', frame)
-    cv.imshow('FG Mask', fgMask)
-    cv.imshow('erosion', erosion_img)
-    cv.imshow('Dilation', dilation_img)
-    ## [show]
+    ## [display_frame_number]
+    #get the frame number and write it on the current frame
+    cv2.rectangle(frame, (10, 2), (100,20), (255,255,255), -1)
+    cv2.putText(frame, str(capture.get(cv2.CAP_PROP_POS_FRAMES)), (15, 15),
+               cv2.FONT_HERSHEY_SIMPLEX, 0.5 , (0,0,0))
+    cv2.imshow('Frame', frame)
 
+    cv2.imshow('FG Mask', img_fg)
+    cv2.imshow('erosion', img_erosion)
+    cv2.imshow('Dilation', img_dilation)
+    cv2.imshow('ISO', img_iso)
+    ## [show]
