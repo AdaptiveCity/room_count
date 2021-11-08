@@ -3,8 +3,7 @@ import cv2
 import argparse
 import numpy as np
 
-parser = argparse.ArgumentParser(description='This program shows how to use background subtraction methods provided by \
-                                              OpenCV. You can process both videos and images.')
+parser = argparse.ArgumentParser(description='An image pipeline to count a seated room audience')
 parser.add_argument('--input', type=str, help='Path to a video or a sequence of image.', default='')
 parser.add_argument('--algo', type=str, help='Background subtraction method (KNN, MOG2).', default='MOG2')
 parser.add_argument('--rate', type=str, help='Background learning rate, e.g. 0.1', default='-1')
@@ -42,6 +41,7 @@ out_coords = np.float32([[-1000,-1200], [2300,-1200], [800,1200], [550,1200]])
 
 # compute perspective matrix
 p_matrix = cv2.getPerspectiveTransform(in_coords,out_coords)
+p_matrix_inv = np.linalg.pinv(p_matrix)
 
 # Perspective image
 img_p = np.zeros((p_w, p_h), dtype=np.uint8)
@@ -105,13 +105,17 @@ while True:
     # do perspective transformation setting area outside input to black
     img_iso = cv2.warpPerspective(img_p, p_matrix, (p_w,p_h), cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT, borderValue=(0,0,0))
 
+    img_color_iso = cv2.cvtColor(img_iso,cv2.COLOR_GRAY2RGB)
+
+    #print("img_iso shape "+str(img_iso.shape))
+
     img_erosion = cv2.erode(img_iso,erosion_kernel,iterations = 3)
 
     img_dilation = cv2.dilate(img_erosion,dilation_kernel,iterations = 7)
 
     # bounding boxes
     contours, hierarchy  = cv2.findContours(img_dilation, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    cv2.drawContours(img_iso, contours, -1, (0,255,75), 2)
+    #cv2.drawContours(img_iso, contours, -1, (0,255,75), 2)
     #print(str(len(contours)) + " contours")
 
     # Draw a bounding box around all contours
@@ -119,7 +123,9 @@ while True:
         # Make sure contour area is large enough
         if (cv2.contourArea(c)) > box_area_min:
             x, y, w, h = cv2.boundingRect(c)
-            cv2.rectangle(img_iso,(x,y), (x+w,y+h), (255,0,0), 5)
+            cv2.rectangle(img_color_iso, (x,y), (x+w,y+h), (255,255,0), 5)
+
+    #img_boxes = cv2.perspectiveTransform(img_iso, p_matrix_inv)
 
     ## [show]
     #show the current frame and the fg masks
@@ -133,5 +139,5 @@ while True:
     cv2.imshow('FG Mask', img_fg)
     cv2.imshow('erosion', img_erosion)
     cv2.imshow('Dilation', img_dilation)
-    cv2.imshow('ISO', img_iso)
+    cv2.imshow('ISO', img_color_iso)
     ## [show]
