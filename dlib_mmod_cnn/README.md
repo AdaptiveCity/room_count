@@ -11,7 +11,6 @@ sudo apt install cmake
 sudo apt install libopenblas-dev
 sudo apt install liblapack-dev
 sudo apt install libx11-dev
-sudo apt install libgtk3-dev
 sudo apt install libgtk-3-dev
 sudo apt install python-dev
 sudo apt install python3-dev
