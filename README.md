@@ -22,3 +22,4 @@ python3 bg_demo.py --input videos/LT1_01.webm --rate 0
 ```
 
 To run the program using the camera as input omit the `--input` parameter.
+
