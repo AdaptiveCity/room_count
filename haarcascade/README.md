@@ -19,4 +19,4 @@ python haar_face_detection.py --image ../images/ADFA_Lecture_Theatres.jpg
 
 ### After detect run
 
-![post detect]('./result.jpg')
+![post detect]('result.jpg')
