@@ -35,8 +35,9 @@ class Topdown():
         self.topdown_scalefactors *= np.array([-1,1]) # mirror topdown coords in output
         self.topdown_translation = np.array([-extent[0], -extent[2]]) # put (0,0) in corner
 
-        if args.three_d and args.focallength_mm is not None and args.sensor_width_mm is not None and\
-   args.sensor_height_mm is not None and args.elevation_m is not None and args.tilt_deg is not None:
+        if args.three_d and args.focallength_mm is not None and\
+           args.sensor_width_mm is not None and args.sensor_height_mm is not None and\
+           args.elevation_m is not None and args.tilt_deg is not None:
             self.cam = ct.Camera(ct.RectilinearProjection(focallength_mm=args.focallength_mm,
                                                           sensor_width_mm=args.sensor_width_mm,
                                                           sensor_height_mm=args.sensor_height_mm,
@@ -51,15 +52,19 @@ class Topdown():
     def ready(self):
         return self.cam is not None
 
-    def topdownFromImage(self, imagecoords, **kwargs):
+    def topdownFromImage(self, imagecoords, filter_nans=True, **kwargs):
         if not self.ready(): return None
+        imagecoords = np.array(imagecoords)
         tdcoords = self.cam.spaceFromImage(imagecoords, **kwargs)[...,:2] * self.topdown_scalefactors + self.topdown_translation
+        if filter_nans: tdcoords = tdcoords[~np.isnan(tdcoords).any(axis=1)]
         return tdcoords
 
-    def imageFromTopdown(self, topdowncoords, **kwargs):
+    def imageFromTopdown(self, topdowncoords, filter_nans=True, **kwargs):
         if not self.ready(): return None
+        topdowncoords = np.array(topdowncoords)
         tdcoords3 = addZeroColumn((topdowncoords - self.topdown_translation)/self.topdown_scalefactors)
         icoords = self.cam.imageFromSpace(tdcoords3, **kwargs)
+        if filter_nans: icoords = icoords[~np.isnan(icoords).any(axis=1)]
         return icoords
 
     def getTopViewofImage(image, **kwargs):
