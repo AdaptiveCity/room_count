@@ -21,16 +21,19 @@ class Topdown():
         if isinstance(imagewxh, (list, tuple, np.ndarray)):
             self.imagewxh = np.array(imagewxh)[:2]
         else:
+            self.errormsg = 'Invalid image dimensions: {}'.format(imagewxh)
             return
         if isinstance(scalefactors, (list, tuple, np.ndarray)):
             self.topdown_scalefactors = np.array(scalefactors)[:2]
         elif isinstance(scalefactors, (int, np.int, float, np.float)):
             self.topdown_scalefactors = np.array([scalefactors, scalefactors])
         else:
+            self.errormsg = 'Invalid scalefactors: {}'.format(scalefactors)
             return
         if isinstance(extent, (list, tuple, np.ndarray)):
             self.topdown_extent = np.array(extent)[:4]
         else:
+            self.errormsg = 'Invalid extent: {}'.format(extent)
             return
         self.topdown_scalefactors *= np.array([-1,1]) # mirror topdown coords in output
         self.topdown_translation = np.array([-extent[0], -extent[2]]) # put (0,0) in corner
@@ -49,6 +52,9 @@ class Topdown():
                                                        tilt_deg=args.tilt_deg,
                                                        heading_deg=args.heading_deg,
                                                        roll_deg=args.roll_deg))
+        else:
+            self.errormsg = 'Insufficient parameters given: {}'.format(vars(args))
+
     def ready(self):
         return self.cam is not None
 
