@@ -73,9 +73,9 @@ class Topdown():
         if filter_nans: icoords = icoords[~np.isnan(icoords).any(axis=1)]
         return icoords
 
-    def getTopViewofImage(image, **kwargs):
+    def getTopViewofImage(self, image, **kwargs):
         if not self.ready(): return None
-        return self.cam.getTopViewofImage(image, extent=self.topdown_extent, **kwargs)
+        return self.cam.getTopViewOfImage(image, extent=self.topdown_extent, **kwargs)
 
 def addZeroColumn(a):
     return np.hstack((a, np.zeros((a.shape[0], 1), dtype=a.dtype)))
