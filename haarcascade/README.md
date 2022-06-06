@@ -33,4 +33,17 @@ The numbers come from camera specification and a guess about the position of the
 
 ### After detect run
 
-![post detect](haar_result.jpg)
+![post detect](haar_result-sample.jpg)
+
+### Topdown view
+
+Green dots correspond to faces, viewed from overhead, with the lecturer position being top-centre facing down.
+![topdown](topdown-sample.jpg)
+
+
+### Camera 'top' view projection
+
+This is a stretching of the image to show an overhead view such that each pixel in the original image has been projected onto its approximate 'ground' location. It helps to show where the system thinks each pixel in the original image 'came from'.
+![topview](camtopview-sample.jpg)
+
+
