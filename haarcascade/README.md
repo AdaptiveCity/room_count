@@ -8,11 +8,25 @@ https://pyimagesearch.com/category/faces/
 
 https://pyimagesearch.com/2021/04/19/face-detection-with-dlib-hog-and-cnn/
 
+## Requirements
+
+Install the `cameratransform` and `opencv-contrib-python[-headless]` packages.
+
 ## Test run
 ```
 cd haarcascade/
 python haar_face_detection.py --image ../images/ADFA_Lecture_Theatres.jpg
 ```
+
+## With 3-D projection & generating a topdown view
+```
+python3 haar_face_detection.py --3d \
+	--sensor-width-mm 6.7 --sensor-height-mm 5.6 --focallength-mm 7.0 \
+	--pos-x-m 0 --pos-y-m 0 --elevation-m 1.8 \
+	--tilt-deg 76 --heading-deg 0 --roll-deg 0  --image ADFA_Lecture_Theatres.jpg $@
+```
+
+The numbers come from camera specification and a guess about the position of the viewer, with orientation parameters selected such that the 'ground plane' matches approximately with the lecture theatre seats. See [cameratransform](https://cameratransform.readthedocs.io/en/latest/) docs.
 
 ### Source image
 ![pre detect](../images/ADFA_Lecture_Theatres.jpg)
