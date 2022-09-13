@@ -1,7 +1,7 @@
 Host tfc-forwards
 	HostName tfc-app9.cl.cam.ac.uk
 	Port 22
-	User mrd45
+	User <user>
 	IdentityFile ~/.ssh/id_rsa
 	ServerAliveInterval 30
 	ServerAliveCountMax 3
@@ -11,7 +11,7 @@ Host tfc-forwards
 Host tfc
 	HostName tfc-app9.cl.cam.ac.uk
 	Port 22
-	User mrd45
+	User <user>
 	IdentityFile ~/.ssh/id_rsa
 	ServerAliveInterval 30
 	ServerAliveCountMax 3

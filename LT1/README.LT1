@@ -25,12 +25,17 @@
 
 - SSH tunnel setup:
   * Run ssh-keygen, and hit enter 3 times to accept defaults and blank passphrase. 
-  * Copy LT1/ssh-config info ~/.ssh/config and change remote forwarding port numbers to unique ones (current scheme is 1n022 for SSH and 1n081 for the motion camera preview, where n is 1-9). There should be two hosts in the config file, 'tfc-forwards' for the tunnels and 'tfc' for your convenience.
+  * Copy LT1/ssh-config info ~/.ssh/config
+    + There should be two hosts in the config file, 'tfc-forwards' for the tunnels and 'tfc' for your convenience.
+    + Change remote forwarding port numbers to unique ones (current scheme is 1n022 for SSH and 1n081 for the motion camera preview, where n is 1-9). 
+    + Change the User fields to match the desired user on tfc.
   * Test the SSH connections to tfc and tfc-forwards to ensure that SSH known-hosts are updated.
   * Put .ssh/id_rsa.pub into tfc's authorized_keys
     + For example, by running this command: cat ~/.ssh/id_rsa.pub | ssh tfc 'cat >> .ssh/authorized_keys'
   * apt update; apt install autossh
-  * Edit autossh-tunnel.service and change the -M <port> value to something unique (current scheme is 1n078 where n is 1-9). Confirm that the configuration file has autossh connecting to tfc-forwards and that the ExecPreStart is testing the DNS service (e.g. with tfc-app9.cl.cam.ac.uk).
+  * Edit autossh-tunnel.service
+    + Change the -M <port> value to something unique (current scheme is 1n078 where n is 1-9).
+    + Confirm that the configuration file has autossh connecting to tfc-forwards and that the ExecPreStart is testing the DNS service (e.g. with tfc-app9.cl.cam.ac.uk).
   * cp autossh-tunnel.service /etc/systemd/system/
   * sudo systemctl enable autossh-tunnel.service
   * useful commands:
