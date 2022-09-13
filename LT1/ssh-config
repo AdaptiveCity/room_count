@@ -1,0 +1,17 @@
+Host tfc-forwards
+	HostName tfc-app9.cl.cam.ac.uk
+	Port 22
+	User mrd45
+	IdentityFile ~/.ssh/id_rsa
+	ServerAliveInterval 30
+	ServerAliveCountMax 3
+	RemoteForward 14022 localhost:22
+	RemoteForward 14081 localhost:8081
+
+Host tfc
+	HostName tfc-app9.cl.cam.ac.uk
+	Port 22
+	User mrd45
+	IdentityFile ~/.ssh/id_rsa
+	ServerAliveInterval 30
+	ServerAliveCountMax 3

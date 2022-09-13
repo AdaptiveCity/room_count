@@ -1,0 +1,17 @@
+[Unit]
+Description=AutoSSH tunnel service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=pirate
+Group=pirate
+Environment="AUTOSSH_GATETIME=0"
+Type=simple
+Restart=always
+RestartSec=3
+ExecStartPre=/bin/bash -c 'until host tfc-app9.cl.cam.ac.uk; do sleep 1; done'
+ExecStart=/usr/bin/autossh -M 14078 -T -N -F /home/pirate/.ssh/config tfc-forwards
+
+[Install]
+WantedBy=multi-user.target
