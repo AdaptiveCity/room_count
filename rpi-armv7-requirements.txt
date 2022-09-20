@@ -1,0 +1,7 @@
+--extra-index-url https://www.piwheels.org/simple
+opencv-python-headless >= 4.6.0
+cameratransform
+numpy >= 1.21.4
+# optional:
+# mtcnn
+# https://github.com/bitsy-ai/tensorflow-arm-bin/releases/download/v2.4.0/tensorflow-2.4.0-cp37-none-linux_armv7l.whl
