@@ -1,3 +1,5 @@
-opencv-contrib-python
-imutils
-dlib
+opencv-python-headless >= 4.6.0
+cameratransform
+numpy >= 1.21.4
+# optional:
+# mtcnn
