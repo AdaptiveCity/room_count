@@ -11,11 +11,11 @@ class MTCNNBackend:
     res = self.detector.detect_faces(img)
     out = []
     for r in res:
-      out.append({'confidence': r['confidence'],
-                  'x': r['box'][0],
-                  'y': r['box'][1],
-                  'w': r['box'][2],
-                  'h': r['box'][3]})
+      out.append({'confidence': float(r['confidence']),
+                  'x': int(r['box'][0]),
+                  'y': int(r['box'][1]),
+                  'w': int(r['box'][2]),
+                  'h': int(r['box'][3])})
     return out
 
 
