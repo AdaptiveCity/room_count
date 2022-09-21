@@ -1,25 +1,46 @@
 # Room occupancy people counting in Python
 
-```
-git clone https://github.com/AdaptiveCity/room_count
+## Install on x86(-64)
 
-cd room_count
-python3 -m venv venv
-source venv/bin/activate
-python3 -m pip install pip --upgrade
-python3 -m pip install wheel
 ```
-On Intel x64/Ubuntu:
-```
-python -m pip install opencv-contrib-python
+# On Debian-based systems for OpenCV support:
+apt-get install -y libatlas-base-dev libavcodec58 libavformat58 libswscale5
+
+# Then:
+pip install -r requirements.txt
 ```
 
-On Raspian, see [Pi opencv install instructions](pi_opencv.md).
 
-This repo is a work-in-progress. To run the sample program:
+## Install on ARMv7 (e.g. Raspberry Pi 4B)
+
 ```
-python3 bg_demo.py --input videos/LT1_01.webm --rate 0
+# On Debian-based systems for OpenCV support:
+apt-get install -y libatlas-base-dev libavcodec58 libavformat58 libswscale5
+pip install -r rpi-armv7-requirements.txt
 ```
 
-To run the program using the camera as input omit the `--input` parameter.
+### Docker alternative
+
+Edit a file named `local_settings` and set an environment variable `RPI_DOCKER_IMAGE` with the name of a target docker image if you like. Then,
+
+```
+./rpi-armv7-build.sh
+```
+
+Push the image and pull it onto the Raspberry Pi using the Docker hub or however you like.
+
+On the Pi, you can use `rpi-armv7-run.sh` as a convenient script to run a command inside of the container, or as an example for your own scripts.
+
+## Running it
+
+```
+python3 dump_face_detections.py [options] <image_file>
+```
+
+Outputs JSON to stdout with `n_results` counting the number of faces found in the image and `detections` comprising a list of entries with `confidence` scores, `x`, `y`, `w` and `h` boxes in pixel coordinates.
+
+Optional arguments:
+
+- `--score-threshold`, giving the minimum confidence threshold, defaulting to 0.7.
+- `--backend`, currently allowable options are `yunet` (default) or `mtcnn` (must install `mtcnn` python package).
 
