@@ -34,13 +34,24 @@ On the Pi, you can use `rpi-armv7-run.sh` as a convenient script to run a comman
 ## Running it
 
 ```
-python3 dump_face_detections.py [options] <image_file>
+python3 dump_face_detections.py [options] <image_file>*
 ```
 
-Outputs JSON to stdout with `n_results` counting the number of faces found in the image and `detections` comprising a list of entries with `confidence` scores, `x`, `y`, `w` and `h` boxes in pixel coordinates.
+For each input image file, unless `-d` is specified, it outputs JSON to stdout comprising a list of entries with `confidence` scores, `x`, `y`, `w` and `h` boxes in pixel coordinates.
+When `--verbose` is given as an option, the output instead includes `n_results` counting the number of faces found in the image and `detections` having the list as specified above. 
 
 Optional arguments:
 
 - `--score-threshold`, giving the minimum confidence threshold, defaulting to 0.7.
 - `--backend`, currently allowable options are `yunet` (default) or `mtcnn` (must install `mtcnn` python package).
+- `--default-output` or `-d`, for each input image file, write JSON output to `<image_file>.det`, replacing the JPG extension with `.det`.
+- `--verbose`, output to stdout as described above; if `-d` is specified then JSON output also goes to the files as usual.
+
+### Example:
+
+```
+python3 dump_face_detections.py --score-threshold 0.8 -d images-*.jpg
+```
+
+This changes the score threshold to 0.8 (80%) and outputs JSON into files matching `images-*.det`.
 
