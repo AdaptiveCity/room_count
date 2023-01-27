@@ -48,16 +48,20 @@ class ImgTransform {
         document.getElementById("button_download").addEventListener("click", (e) => { parent.button_download(parent, e); });
         document.getElementById("button_reset").addEventListener("click", (e) => { parent.button_reset(parent, e); });
         document.getElementById("button_load").addEventListener("click", (e) => { parent.button_load(parent, e); });
+        document.getElementById("button_download_json").addEventListener("click", (e) => { parent.button_download_json(parent, e); });
 
         parent.mouse_down = false;      // Boolean keeping track of whether the mouse is down for arrow drawing
         parent.lines = [];
+        parent.pos_list=[];//final json object with all the seating information
 
         //main file selection
-        parent.photo_name="lt1-rpi1-20221111-121015-9850";
+        parent.photo_name="lt1-rpi1-20221124-162649-12344";
 
         parent.transform_reference="./LT-middle-transformation.json";
 
-        parent.confidence=0.50;
+        parent.confidence=0.5;//confidence percentage that a face is a face
+        parent.distance_threshold=200;//100pixel threshold for seat allocation
+
         parent.photo = {
             name: parent.photo_name+".jpg",
             width: 2592,
@@ -71,7 +75,7 @@ class ImgTransform {
         };
 
         parent.input = {
-            name: parent.photo_name+".json"
+            name: parent.photo_name+".det"
         };
 
         parent.photo_el.src="images/"+parent.photo.name;
@@ -83,20 +87,12 @@ class ImgTransform {
 
     let x1=coords.x;
     let y1=coords.y;
-    let x2=coords.h;
-    let y2=coords.w;
-
-    let xCenter = (x1 + x2) / 2;
-    let yCenter = (y1 + y2) / 2;
-
+    
     let c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
         c.cx.baseVal.value = x1;
         c.cy.baseVal.value = y1;
-        c.r.baseVal.value = coords.confidence*20;
-
-        let col =color==undefined?"red":color;
-        
-        c.style.fill = col;
+        c.r.baseVal.value = coords.confidence*20;        
+        c.style.fill = color;
 
         if(coords.confidence>parent.confidence){
             parent.svg_el.appendChild(c);
@@ -149,7 +145,93 @@ class ImgTransform {
         parent.mouse_down = false;
         console.log("Added line index=",parent.lines.length-1);
     }
+  
+    //draws circles from the CV-generated file
+    get_faces(parent,photo_json){
+        
+        console.log(photo_json);
 
+        for(let i=0; i<photo_json.length;i++){
+            let coords=photo_json[i];
+            coords.x+=coords.w/2;
+            coords.y+=coords.h/2;
+            parent.draw_circle(parent,coords, "red");
+        }
+
+        //load the hardcoded the transformation file
+        fetch(parent.transform_reference)
+            .then((response) => response.json())
+            .then((tranform_json) => parent.apply_transform(parent,photo_json,tranform_json));
+    }
+
+    //tranform the photo coordinates to (non-wgb) floorplan coordinates 
+    apply_transform(parent,photo_data, transform_data){
+
+        console.log('TRANSFORM DATA');
+        console.log(transform_data);
+        
+        let t_list=transform_data.points;
+
+//test drawing all of hardcoded seat values in yellow for reference
+        for(let j=0; j<t_list.length;j++){
+               
+               let x_hc=t_list[j].x_in;
+               let y_hc=t_list[j].y_in;
+               
+               let pos_obj={}
+               pos_obj.x=x_hc;
+               pos_obj.y=y_hc;
+               pos_obj.confidence=0.51;
+               parent.draw_circle(parent,pos_obj,"yellow");
+        }
+
+       // let pos_list=[]
+
+        //apply the transformation and draw the people's location on the floorplan
+        for(let i=0; i<photo_data.length;i++){
+            if(photo_data[i].confidence<parent.confidence){
+                continue;
+            }
+            let coords=photo_data[i];         
+            let x1=coords.x+coords.w/2;
+            let y1=coords.y+coords.h/2;
+
+            //find closest data_point
+            //(hugely inefficient for now)
+            let dist_list=[];
+            for(let u=0; u<t_list.length;u++){
+               
+               let x2=t_list[u].x_in;
+               let y2=t_list[u].y_in;
+               let dist=getDistance(x1, y1, x2, y2);
+          
+               let seat={};
+               seat["dist"]=dist;
+               seat["confidence"]=coords.confidence;
+               seat["x"]=t_list[u].x_out;
+               seat["y"]=t_list[u].y_out;
+
+
+               if(dist< parent.distance_threshold){
+                     dist_list.push(seat);
+              }
+              
+            }
+
+            if(dist_list.length>0){
+                dist_list.sort((a,b) => a.dist - b.dist);
+                console.log(i+" - dist: "+ parseInt(dist_list[0].dist));          
+                parent.draw_circle(parent,dist_list[0],"lime");
+                parent.pos_list.push(dist_list[0]);
+            }
+        }
+
+        console.log(parent.pos_list);
+     //   parent.download_test(parent,pos_list);
+       // button_download_json
+    }
+
+   
     // *********************************
     // BUTTON CLICK EVENTS
     button_load(parent, e) {
@@ -157,61 +239,6 @@ class ImgTransform {
         fetch("images/"+ parent.input.name)
             .then((response) => response.json())
             .then((json) => parent.get_faces(parent,json));
-    }
-
-    get_faces(parent,photo_json){
-        
-        console.log(photo_json);
-
-        for(let i=0; i<photo_json.length;i++){
-            let coords=photo_json[i];
-            parent.draw_circle(parent,coords);
-        }
-
-        fetch(parent.transform_reference)
-            .then((response) => response.json())
-            .then((tranform_json) => parent.apply_transform(parent,photo_json,tranform_json));
-    }
-
-    apply_transform(parent,photo_data, transform_data){
-
-        console.log('TRANSFORM DATA');
-        console.log(transform_data);
-
-        let t_list=transform_data.points;
-        let pos_list=[]
-        for(let i=0; i<photo_data.length;i++){
-            if(photo_data[i].confidence<parent.confidence){
-                continue;
-            }
-            let coords=photo_data[i];
-            
-            let x1=coords.x;
-            let y1=coords.y;
-
-           // console.log('i', i);
-            //find closest data_point
-            let dist_list=[];
-            for(let u=0; u<t_list.length;u++){
-               
-                let x2=t_list[u].x_in;
-                let y2=t_list[u].y_in;
-                let dist=getDistance(x1, y1, x2, y2);
-
-                let seat={};
-                seat["dist"]=dist;
-                seat["confidence"]=0.51;
-                seat["x"]=t_list[u].x_out;
-                seat["y"]=t_list[u].y_out;
-               dist_list.push(seat);
-              
-            }
-            dist_list.sort((a,b) => a.dist - b.dist);
-                console.log(i, "dist_list", dist_list[0]);
-                parent.draw_circle(parent,dist_list[0],"lime");
-
-        }
-
     }
 
     button_back(parent, e) {
@@ -242,6 +269,25 @@ class ImgTransform {
         window.URL.revokeObjectURL(url)
     }
 
+    button_download_json(parent, e) {
+        console.log("button_download json");
+        const file = new File(parent.make_file_from_list(parent,parent.pos_list),   "test_"+parent.photo_name+'.json', {
+            type: 'application/json',
+        });
+
+        const link = document.createElement('a')
+        const url = URL.createObjectURL(file)
+
+        link.href = url
+        link.download = file.name
+        document.body.appendChild(link)
+        link.click()
+
+        document.body.removeChild(link)
+        window.URL.revokeObjectURL(url)
+
+    }
+
     button_reset(parent, e) {
         console.log("button_reset");
         for (let i=0; i < parent.lines.length; i++) {
@@ -252,6 +298,41 @@ class ImgTransform {
 
     // *********************************
     // Make the transform.json file
+
+    make_file_from_list(parent, list) {
+        let s = new Array();
+
+        s.push('{\n');
+
+        s.push('  "input_image": { "name": "'+parent.photo.name+'",\n');
+        s.push('                   "width": '+parent.photo.width+',\n');
+        s.push('                   "height": '+parent.photo.height+'\n');
+        s.push('  },\n');
+
+        s.push('  "output_image": { "name": "'+parent.overlay.name+'",\n');
+        s.push('                   "width": '+parent.overlay.width+',\n');
+        s.push('                   "height": '+parent.overlay.height+'\n');
+        s.push('  },\n');
+
+        // Now add points
+        s.push('  "points": [\n');
+        for (let i=0; i<list.length; i++) {
+            s.push('{\n');
+            // Add each line as { x_in, y_in, x_out, y_out } (with comma after if not last line)
+            //parent.make_point(parent.lines[i])+ (i < parent.lines.length-1 ? ',\n' : '\n')
+            s.push('"x" :'+list[i].x+',\n');
+            s.push('"y" :'+list[i].y+',\n');
+            s.push('"dist" :'+list[i].dist+'\n');
+
+            if((i <list.length-1 ? s.push('  },\n') :s.push('  }\n')));
+            
+        }
+        s.push('  ]\n');
+
+        s.push('}\n');
+
+        return s;
+    }
 
     make_file(parent) {
         let s = new Array();
@@ -307,6 +388,7 @@ function getDistance(x1, y1, x2, y2) {
     <button id="button_back">back</button>
     <button id="button_download">download</button>
     <button id="button_load">load</button>
+    <button id="button_download_json">download json</button>
 
 </div>
 
