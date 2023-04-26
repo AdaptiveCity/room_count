@@ -1,6 +1,14 @@
 # Room occupancy people counting in Python
 
-## Install on x86(-64)
+## Updating camera library - 2023 May version  
+# More information found below  
+https://www.raspberrypi.com/documentation/computers/camera_software.html
+
+## Faster OpenCV installation on Raspberry Pi 4B - 2023 May version
+# More information found below  
+https://pypi.org/project/opencv-python/
+
+## Install on x86(-64) - 2022 August version  
 
 ```
 # On Debian-based systems for OpenCV support:
@@ -11,7 +19,7 @@ pip install -r requirements.txt
 ```
 
 
-## Install on ARMv7 (e.g. Raspberry Pi 4B)
+## Install on ARMv7 (e.g. Raspberry Pi 4B) - 2022 August version  
 
 ```
 # On Debian-based systems for OpenCV support:
@@ -19,7 +27,7 @@ apt-get install -y libatlas-base-dev libavcodec58 libavformat58 libswscale5
 pip install -r rpi-armv7-requirements.txt
 ```
 
-### Docker alternative
+### Docker alternative - 2022 August version  
 
 Edit a file named `local_settings` and set an environment variable `RPI_DOCKER_IMAGE` with the name of a target docker image if you like. Then,
 
