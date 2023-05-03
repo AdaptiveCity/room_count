@@ -1,12 +1,12 @@
 # Room occupancy people counting in Python
 
 ## Updating camera library - 2023 May version  
-# More information found below  
+### More information found below  
 https://www.raspberrypi.com/documentation/computers/camera_software.html
 https://datasheets.raspberrypi.com/camera/picamera2-manual.pdf
 
 ## Faster OpenCV installation on Raspberry Pi 4B - 2023 May version
-# More information found below  
+### More information found below  
 https://pypi.org/project/opencv-python/
 
 ## Install on x86(-64) - 2022 August version  
