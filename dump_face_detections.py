@@ -24,11 +24,15 @@ def main():
     img = cv2.imread(inpfile)
     res = d.run(img)
 
+    if(res==None):
+        print('skipped', inpfile)
+        continue
+        
     if args.verbose:
       print(json.dumps({ 'n_results': len(res), 'detections': res }, sort_keys=True, indent=4))
 
     if args.default_output:
-      outfile = Path(inpfile).with_suffix('.det')
+      outfile = Path(inpfile).with_suffix('.json')#used to be .det, changed it to json
       with open(outfile, 'w') as f:
         json.dump(res, f)
         print(f'Wrote JSON to {outfile}')

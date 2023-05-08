@@ -10,7 +10,14 @@ class YNBackend:
     self.detector.setInputSize((w,h))
     _, faces = self.detector.detect(img)
     out = []
-    for f in faces:
-      out.append({'confidence': float(f[-1]),
-                  'x': int(f[0]), 'y': int(f[1]), 'w': int(f[2]), 'h': int(f[3])})
+    #print(_, faces, type(faces))
+
+    try:
+        for f in faces:
+            out.append({'confidence': float(f[-1]),
+                        'x': int(f[0]), 'y': int(f[1]), 'w': int(f[2]), 'h': int(f[3])})
+    except:
+      print("An exception occurred - no faces") 
+      return
+
     return out
