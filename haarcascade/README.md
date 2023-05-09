@@ -1,5 +1,12 @@
 # Room face count using OpenCV haarcascade
 
+## Overview
+
+There are two versions of the python applying a haarcascade to the LT1 images:
+* `detect_plain.py` - this face-detects the scene but has no projection to the top-down seating positions.
+* `haar_face_detection.py` - this is essentially the same as above but also tries a projection for the top-down seats.
+
+## Some links
 https://hawksey.info/blog/2017/11/using-opencv-raspberry-pi-and-google-analytics-to-measure-audience-levels-via-face-detection/
 
 https://rpihome.blogspot.com/2015/03/face-detection-with-raspberry-pi.html
@@ -7,6 +14,29 @@ https://rpihome.blogspot.com/2015/03/face-detection-with-raspberry-pi.html
 https://pyimagesearch.com/category/faces/
 
 https://pyimagesearch.com/2021/04/19/face-detection-with-dlib-hog-and-cnn/
+
+## Running the `detect_plain`version
+
+Assuming a virtual environment set up with `python -m venv venv`:
+
+```
+source venv/bin/activate
+python -m pip install pip --upgrade
+python -m pip install wheel
+```
+
+In the `haarcascade`directory:
+```
+python -m pip install -r requirements.txt
+```
+To run a detect pass:
+```
+python detect_plain.py --image <image file name>
+```
+
+
+
+
 
 ## Requirements
 
