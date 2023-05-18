@@ -13,7 +13,7 @@ The DiffBasic algorithm:
 
 * Creates the grayscale absDiff image same as `diff_basic`
 * Loads seat_boxes.json
-* For each box in boxes.json the DiffBoxes thresholds the brightness to determine an 'occipied' status for that seat.
+* For each box in boxes.json the DiffBoxes thresholds the brightness of diff image to determine an 'occipied' status for that seat.
 
 ## Example `seat_boxes.json` created by `seat_boxes.html`
 ```
@@ -40,4 +40,8 @@ Directory `~/LT1_imagesx` contains images of LT1 occupied.
 source venv/bin/activate
 cd diff_detector
 python diff_boxes.py -i ~/LT1_imagesx/lt1_1.jpg -e lt1_empty.jpg -b 30 -j seat_boxes.json
+```
+
+```
+python diff_basic.py -i ~/LT1_imagesx/lt1_1.jpg -e ~/LT1_imagesx/lt1_empty.jpg -b 30
 ```

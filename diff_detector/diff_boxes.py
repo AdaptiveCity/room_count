@@ -24,7 +24,10 @@ def main():
     ap.add_argument("-b", "--brightness", type=int, required=False, default=0,
     	help="brightness value [-127,127]")
 
-    ap.add_argument("-j", "--json", type=str, required=False, default="seat_boxes.json",
+    ap.add_argument("-t", "--threshold", type=float, required=False, default=0.14,
+    	help="diff threshold value occupied/empty value [0.14]")
+
+    ap.add_argument("-j", "--json", type=str, required=False, default="boxes/seat_boxes.json",
     	help="Seat boxes json file (seat_boxes.json)")
 
     args = vars(ap.parse_args())
@@ -79,7 +82,7 @@ def main():
         #print("seat {} found".format(seat["seat_id"]))
         image_seat = image_diff[y:y1, x:x1]
         seat_brightness = img_brightness(image_seat)
-        if seat_brightness > 0.14:
+        if seat_brightness > args["threshold"]:
             color = (100,100,255)
             thickness = 4
         else:

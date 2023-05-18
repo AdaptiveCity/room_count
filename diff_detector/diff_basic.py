@@ -26,13 +26,25 @@ args = vars(ap.parse_args())
 
 print("[INFO] loading diff model for {}...".format(args["image"]))
 
+t0 = time.time()
+
+# hsv = True will apply HSV conversion to the images before comparison
+hsv = False
+blur = False
+blur_size = (15,15)
+
 # load the input image from disk, resize it, and convert it from
 # BGR to RGB channel ordering (which is what dlib expects)
 image_input = cv2.imread(args["image"])
-#image_input = cv2.cvtColor(image_input, cv2.COLOR_BGR2HSV)
 
 ## Calculate input image brightness
 brightness_input = img_brightness(cv2.cvtColor(image_input, cv2.COLOR_BGR2GRAY))
+
+if blur:
+    image_input = cv2.blur(image_input, blur_size)
+
+if hsv:
+    image_input = cv2.cvtColor(image_input, cv2.COLOR_BGR2HSV)
 
 print(f'Input image brightness {brightness_input:.2f}')
 
@@ -40,42 +52,35 @@ image_empty = cv2.imread(args["image_empty"])
 brightness_empty = img_brightness(cv2.cvtColor(image_empty, cv2.COLOR_BGR2GRAY))
 print(f'Empty image brightness {brightness_empty:.2f}')
 
+
 #cv2.imshow("Empty",image_empty)
 image_empty_adj = cv2.convertScaleAbs(image_empty, alpha=1, beta=args["brightness"])
-cv2.imshow("Empty adj",image_empty_adj)
 
 brightness_empty_adj = img_brightness(cv2.cvtColor(image_empty_adj, cv2.COLOR_BGR2GRAY))
 print(f'Empty_adj image brightness {brightness_empty_adj:.2f}')
 
 #image_empty_adj = cv2.cvtColor(image_empty, cv2.COLOR_BGR2HSV)
+cv2.imshow("Empty adj",image_empty_adj)
 
-#cv2.convertScaleAbs(image_empty, contrast 0..1..+ve, brightness [-127, 127])
-#cv2.imshow("Empty", image_empty)
+if blur:
+    image_empty_adj = cv2.blur(image_empty_adj, blur_size)
+
+if hsv:
+    image_empty_adj = cv2.cvtColor(image_empty_adj, cv2.COLOR_BGR2HSV)
 
 # Calculate the per-element absolute difference between
 # two arrays or between an array and a scalar
 image_diff = cv2.absdiff(image_input, image_empty_adj)
 #image_diff = cv2.cvtColor(image_diff, cv2.COLOR_HSV2BGR)
 image_diff = cv2.cvtColor(image_diff, cv2.COLOR_BGR2GRAY)
+brightness_diff = img_brightness(image_diff)
+print(f'Diff brightness {brightness_diff:.2f}')
 
-#image_input = imutils.resize(image_input, width=2000)
-#rgb_image = cv2.cvtColor(image_input, cv2.COLOR_BGR2RGB)
-# perform face detection using dlib's face detector
-start = time.time()
+t1 = time.time()
+print(f'Execution time: {t1-t0:.3f}')
 
-print("[INFO[ performing face detection with OpenCV...")
-#boxes = detector.detectMultiScale(image_input)
-#end = time.time()
-#print("[INFO] face detection found {} faces and took {:.4f} seconds".format(len(boxes), end - start))
-
-# loop over the bounding boxes
-#for (x, y, w, h) in boxes:
-#    # draw the bounding box on our image
-#    cv2.rectangle(image_input, (x, y), (x + w, y + h), (0, 255, 0), 2)
-#    print("detected face at ({},{}) size ({},{})".format(x,y,w,h))
-
-# show the output image
-#cv2.imwrite('haar_result.jpg', image_input)
+# show the 'diff' image
 cv2.imshow("Diff", image_diff)
+
 cv2.waitKey(0)
 cv2.destroyAllWindows()
